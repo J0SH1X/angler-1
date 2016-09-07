@@ -186,7 +186,6 @@ static int __udp_diag_destroy(struct sk_buff *in_skb,
 		if (ipv6_addr_v4mapped((struct in6_addr *)req->id.idiag_dst) &&
 		    ipv6_addr_v4mapped((struct in6_addr *)req->id.idiag_src))
 			sk = __udp4_lib_lookup(net,
-//change so fucking git will work
 					req->id.idiag_dst[3], req->id.idiag_dport,
 					req->id.idiag_src[3], req->id.idiag_sport,
 					req->id.idiag_if, tbl);
