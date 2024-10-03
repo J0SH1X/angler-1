@@ -190,7 +190,7 @@ static inline s64 timekeeping_get_ns(struct tk_read_base *tkr)
 {
 	cycle_t cycle_now, delta;
 	struct clocksource *clock;
-	u64 nsec;
+	s64 nsec;
 
 	/* read clocksource: */
 	cycle_now = tkr->read(tkr->clock);
