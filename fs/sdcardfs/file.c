@@ -104,7 +104,10 @@ static long sdcardfs_unlocked_ioctl(struct file *file, unsigned int cmd,
 				  unsigned long arg)
 {
 	long err = -ENOTTY;
+	const struct cred *saved_cred = NULL;
 	struct file *lower_file;
+	struct dentry *dentry = file->f_path.dentry;
+	struct sdcardfs_sb_info *sbi = SDCARDFS_SB(dentry->d_sb);
 
 	lower_file = sdcardfs_lower_file(file);
 
@@ -128,6 +131,9 @@ static long sdcardfs_compat_ioctl(struct file *file, unsigned int cmd,
 {
 	long err = -ENOTTY;
 	struct file *lower_file;
+	const struct cred *saved_cred = NULL;
+	struct dentry *dentry = file->f_path.dentry;
+	struct sdcardfs_sb_info *sbi = SDCARDFS_SB(dentry->d_sb);
 
 	lower_file = sdcardfs_lower_file(file);
 

@@ -270,8 +270,8 @@ int mdss_mdp_splash_cleanup(struct msm_fb_data_type *mfd,
 		/* Give back the reserved memory to the system */
 		memblock_free(mdp5_data->splash_mem_addr,
 					mdp5_data->splash_mem_size);
-		mdss_free_bootmem(mdp5_data->splash_mem_addr,
-					mdp5_data->splash_mem_size);
+		// mdss_free_bootmem(mdp5_data->splash_mem_addr,
+		// 			mdp5_data->splash_mem_size);
 	}
 
 	mdss_mdp_footswitch_ctrl_splash(0);
@@ -642,8 +642,8 @@ error:
 		pr_debug("mem reservation not reqd if cont splash disabled\n");
 		memblock_free(mdp5_mdata->splash_mem_addr,
 					mdp5_mdata->splash_mem_size);
-		mdss_free_bootmem(mdp5_mdata->splash_mem_addr,
-					mdp5_mdata->splash_mem_size);
+		// mdss_free_bootmem(mdp5_mdata->splash_mem_addr,
+		// 			mdp5_mdata->splash_mem_size);
 	} else if (rc && mfd->panel_info->cont_splash_enabled) {
 		pr_err("no rsvd mem found in DT for splash screen\n");
 	} else {
