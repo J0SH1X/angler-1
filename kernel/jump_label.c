@@ -165,22 +165,16 @@ static inline bool static_key_type(struct static_key *key)
 
 static inline struct static_key *jump_entry_key(struct jump_entry *entry)
 {
-	return (struct static_key *)((unsigned long)entry->key & ~1UL);
-}
-
-static bool jump_entry_branch(struct jump_entry *entry)
-{
-	return (unsigned long)entry->key & 1UL;
+	return (struct static_key *)((unsigned long)entry->key);
 }
 
 static enum jump_label_type jump_label_type(struct jump_entry *entry)
 {
 	struct static_key *key = jump_entry_key(entry);
 	bool enabled = static_key_enabled(key);
-	bool branch = jump_entry_branch(entry);
+	bool type = static_key_type(key);
 
-	/* See the comment in linux/jump_label.h */
-	return enabled ^ branch;
+	return enabled ^ type;
 }
 
 static void __jump_label_update(struct static_key *key,
@@ -211,10 +205,7 @@ void __init jump_label_init(void)
 	for (iter = iter_start; iter < iter_stop; iter++) {
 		struct static_key *iterk;
 
-		/* rewrite NOPs */
-		if (jump_label_type(iter) == JUMP_LABEL_NOP)
-			arch_jump_label_transform_static(iter, JUMP_LABEL_NOP);
-
+		arch_jump_label_transform_static(iter, jump_label_type(iter));
 		iterk = jump_entry_key(iter);
 		if (iterk == key)
 			continue;
@@ -233,16 +224,6 @@ void __init jump_label_init(void)
 }
 
 #ifdef CONFIG_MODULES
-
-static enum jump_label_type jump_label_init_type(struct jump_entry *entry)
-{
-	struct static_key *key = jump_entry_key(entry);
-	bool type = static_key_type(key);
-	bool branch = jump_entry_branch(entry);
-
-	/* See the comment in linux/jump_label.h */
-	return type ^ branch;
-}
 
 struct static_key_mod {
 	struct static_key_mod *next;
@@ -295,11 +276,8 @@ void jump_label_apply_nops(struct module *mod)
 	if (iter_start == iter_stop)
 		return;
 
-	for (iter = iter_start; iter < iter_stop; iter++) {
-		/* Only write NOPs for arch_branch_static(). */
-		if (jump_label_init_type(iter) == JUMP_LABEL_NOP)
-			arch_jump_label_transform_static(iter, JUMP_LABEL_NOP);
-	}
+	for (iter = iter_start; iter < iter_stop; iter++)
+		arch_jump_label_transform_static(iter, JUMP_LABEL_NOP);
 }
 
 static int jump_label_add_module(struct module *mod)
@@ -340,8 +318,7 @@ static int jump_label_add_module(struct module *mod)
 		jlm->next = key->next;
 		key->next = jlm;
 
-		/* Only update if we've changed from our initial state */
-		if (jump_label_type(iter) != jump_label_init_type(iter))
+		if (jump_label_type(iter) == JUMP_LABEL_JMP)
 			__jump_label_update(key, iter, iter_stop);
 	}
 
