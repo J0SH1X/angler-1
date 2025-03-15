@@ -188,11 +188,6 @@ static inline struct jump_entry *static_key_entries(struct static_key *key)
 	return (struct jump_entry *)((unsigned long)key->entries & ~JUMP_TYPE_MASK);
 }
 
-static inline struct static_key *jump_entry_key(struct jump_entry *entry)
-{
-	return (struct static_key *)((unsigned long)entry->key);
-}
-
 static enum jump_label_type jump_label_type(struct static_key *key)
 {
 	bool enabled = static_key_enabled(key);
@@ -214,7 +209,7 @@ void __init jump_label_init(void)
 	for (iter = iter_start; iter < iter_stop; iter++) {
 		struct static_key *iterk;
 
-		iterk = jump_entry_key(iter);
+		iterk = (struct static_key *)(unsigned long)iter->key;
 		arch_jump_label_transform_static(iter, jump_label_type(iterk));
 		if (iterk == key)
 			continue;
@@ -309,7 +304,7 @@ static int jump_label_add_module(struct module *mod)
 	for (iter = iter_start; iter < iter_stop; iter++) {
 		struct static_key *iterk;
 
-		iterk = jump_entry_key(iter);
+		iterk = (struct static_key *)(unsigned long)iter->key;
 		if (iterk == key)
 			continue;
 
@@ -346,10 +341,10 @@ static void jump_label_del_module(struct module *mod)
 	struct static_key_mod *jlm, **prev;
 
 	for (iter = iter_start; iter < iter_stop; iter++) {
-		if (jump_entry_key(iter) == key)
+		if (iter->key == (jump_label_t)(unsigned long)key)
 			continue;
 
-		key = jump_entry_key(iter);
+		key = (struct static_key *)(unsigned long)iter->key;
 
 		if (within_module(iter->key, mod))
 			continue;
